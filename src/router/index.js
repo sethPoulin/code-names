@@ -4,7 +4,8 @@ import Home from '../views/Home.vue'
 
 Vue.use(VueRouter)
 
-const RecentDocuments = () => import('../views/RecentDocuments.vue')
+const CreateGame = () => import('../views/CreateGame.vue')
+const PlayGame = () => import('../views/PlayGame.vue')
 
 const routes = [
   {
@@ -21,9 +22,18 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
   },
   {
-    path: '/recent',
-    name: 'recent',
-    component: RecentDocuments
+    path: '/create',
+    name: 'create',
+    component: CreateGame
+  },
+  {
+    path: '/play/:game',
+    name: 'play',
+    component: PlayGame
+  },
+  {
+    path: '*',
+    redirect: { name: 'create' }
   }
 ]
 
