@@ -5,6 +5,18 @@
       <h2>Send other players this link so they can join the game:</h2>
       <h2>https://code-names/play/{{ gameId }}</h2>
     </div>
+    <div class="player-type-container">
+      <button-element class="player-role" 
+        v-if="playerIsAgent"
+        @click.native="modifyLayout('Spymaster')">
+          PLAY AS SPYMASTER
+      </button-element>
+      <button-element class="player-role"
+        v-else
+        @click.native="modifyLayout('Agent')">
+          PLAY AS AGENT
+      </button-element>
+    </div>
     <div class="game">
       <game-card
         class="card" 
@@ -23,18 +35,21 @@
 
 import GameCard from '@/components/GameCard'
 import { db } from '@/db'
+import ButtonElement from '@/components/ButtonElement.vue'
 
 export default {
   name: 'play',
   components: {
-    GameCard
+    GameCard,
+    ButtonElement
   },
   data() {
     return {
       gameId: '',
       data: '',
       blueCardsRemaining: undefined,
-      redCardsRemaining: undefined
+      redCardsRemaining: undefined,
+      playerIsAgent: true
     }
   },
   created: function () {
@@ -64,6 +79,10 @@ export default {
       const updates = {}
       updates[this.gameId] = this.data;
       return db.ref().update(updates);
+    },
+    modifyLayout (playerType) {
+      this.playerIsAgent = !this.playerIsAgent
+      console.log(playerType)
     }
   }
 }
@@ -76,6 +95,12 @@ export default {
   .container 
     max-width 95%
     margin: 0 auto
+
+  .player-type-container  
+    margin-bottom: 2rem
+
+  .player-role 
+    font-weight: bold
   
   .game 
     max-width: 1200px
