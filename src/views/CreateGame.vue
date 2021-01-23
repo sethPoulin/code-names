@@ -5,15 +5,15 @@
       <input v-model="gameName" type="text" id="game" placeholder="Ex: my-super-fun-game">
     </form>
     <button @click="setupGame()">Create new game</button>
-    <!-- <button @click="addProp('penis')">Add penis</button> -->
     <p>{{ data.username }}</p>
   </div>
 </template>
 
 
 <script>
-import { db } from '@/db'
-import { wordList } from '@/service-wordlist'
+import { db } from '@/db.js'
+import { wordList } from '@/utils/wordlist.service.js'
+import { teamData } from '@/utils/teamData.service.js'
 
 export default {
   name: 'recent',
@@ -22,16 +22,22 @@ export default {
       gameName: '',
       data: '',
       gameId: undefined,
-      cardList: undefined
+      cardList: undefined,
+      redCards: undefined,
+      blueCards: undefined
     }
   },
-  computed: {
-  },
+
   created: function () {
-    this.getGameInfo()
+    // this.getGameInfo()
     const list = new wordList
     this.cardList = list.cardList
+    const teamCards = new teamData
+    const teamCardNums = teamCards.teamCardNums
+    this.redCards = teamCardNums.red
+    this.blueCards = teamCardNums.blue
   },
+
   methods: {
     addProp: function (prop) {
       // From the docs:
@@ -44,8 +50,8 @@ export default {
       return db.ref(this.gameId).update(updates)
     },
     generateHash: function () {
-      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-      const numOfChars = 6
+      const chars = 'abcdefghijkmnpqrstuvwxyz23456789'
+      const numOfChars = 4
       const hash = []
       for ( var i = 0; i < numOfChars; i++ ) {
         hash.push(chars.charAt(Math.floor(Math.random() * (chars.length -1))))
@@ -57,14 +63,6 @@ export default {
       const gameId = this.gameName + '-' + hash
       this.gameId = gameId
       console.log(this.gameId)
-    },
-    getGameInfo: function () {
-      if(db.ref(this.gameId)) {
-        const currentGame = db.ref(this.gameId)
-        currentGame.on('value', (snapshot) => {
-          this.data = snapshot.val()
-        })
-      }
     },
     setupGame: function () {
       this.setGameId()
