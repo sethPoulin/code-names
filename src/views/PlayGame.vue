@@ -2,20 +2,8 @@
   <div class="container">
     <div class="header">
       <!-- <h1>This is your game page</h1> -->
-      <h2>Send other players this link so they can join the game:</h2>
+      <!-- <h2>Send other players this link so they can join the game:</h2> -->
       <h2>https://code-names/play/{{ gameId }}</h2>
-    </div>
-    <div class="player-type-container">
-      <button-element class="player-role" 
-        v-if="playerIsAgent"
-        @click.native="modifyLayout('Spymaster')">
-          PLAY AS SPYMASTER
-      </button-element>
-      <button-element class="player-role"
-        v-else
-        @click.native="modifyLayout('Agent')">
-          PLAY AS AGENT
-      </button-element>
     </div>
     <div class="game">
       <game-card
@@ -25,8 +13,21 @@
         :word="card.word" 
         :role="card.role"
         :isHidden="!card.solved"
+        :isSpymaster="!playerIsAgent"
         @revealCard="[solveCard(card.word), updateCards()]">
       </game-card>
+    </div>
+    <div class="player-type-container">
+      <base-button class="player-role" 
+        v-if="playerIsAgent"
+        @click.native="modifyLayout('Spymaster')">
+          PLAY AS SPYMASTER
+      </base-button>
+      <base-button class="player-role"
+        v-else
+        @click.native="modifyLayout('Agent')">
+          PLAY AS AGENT
+      </base-button>
     </div>
   </div>
 </template>
@@ -35,13 +36,13 @@
 
 import GameCard from '@/components/GameCard'
 import { db } from '@/db'
-import ButtonElement from '@/components/ButtonElement.vue'
+import BaseButton from '@/components/BaseButton.vue'
 
 export default {
   name: 'play',
   components: {
     GameCard,
-    ButtonElement
+    BaseButton
   },
   data() {
     return {
@@ -104,7 +105,7 @@ export default {
   
   .game 
     max-width: 1200px
-    margin: 0 auto
+    margin: 0 auto 2rem
     display: grid
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     grid-gap: 1rem
