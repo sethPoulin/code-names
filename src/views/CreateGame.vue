@@ -29,7 +29,6 @@ export default {
   },
 
   created: function () {
-    // this.getGameInfo()
     const list = new wordList
     this.cardList = list.cardList
     const teamCards = new teamData
@@ -37,7 +36,11 @@ export default {
     this.redCards = teamCardNums.red
     this.blueCards = teamCardNums.blue
   },
-
+  computed: {
+    startingTurn () {
+      return this.redCards === 9 ? 'red' : 'blue'
+    }
+  },
   methods: {
     addProp: function (prop) {
       // From the docs:
@@ -64,11 +67,15 @@ export default {
       this.gameId = gameId
       console.log(this.gameId)
     },
+    // add to createGame the whose turn is it property
     setupGame: function () {
       this.setGameId()
       db.ref(this.gameId).set({
         players: [{dummy : 'dummy'}],
-        cardList: this.cardList
+        cardList: this.cardList,
+        teamTurn: this.startingTurn,
+        redCardsRemaining: this.redCards,
+        blueCardsRemaining: this.blueCards
       })
       // this.getGameInfo()
       const path = '/play/' + this.gameId
