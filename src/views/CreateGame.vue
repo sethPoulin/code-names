@@ -13,7 +13,7 @@
 <script>
 import { db } from '@/db.js'
 import { wordList } from '@/utils/wordlist.service.js'
-import { teamData } from '@/utils/teamData.service.js'
+// import { teamData } from '@/utils/teamData.service.js'
 
 export default {
   name: 'recent',
@@ -22,33 +22,33 @@ export default {
       gameName: '',
       data: '',
       gameId: undefined,
-      cardList: undefined,
-      redCards: undefined,
-      blueCards: undefined
+      cardList: undefined
+      // redCards: undefined,
+      // blueCards: undefined
     }
   },
 
   created: function () {
     const list = new wordList
     this.cardList = list.cardList
-    const teamCards = new teamData
-    const teamCardNums = teamCards.teamCardNums
-    this.redCards = teamCardNums.red
-    this.blueCards = teamCardNums.blue
+    // const teamCards = new teamData
+    // const teamCardNums = teamCards.teamCardNums
+    // this.redCards = teamCardNums.red
+    // this.blueCards = teamCardNums.blue
   },
   computed: {
     startingTurn () {
-      return this.redCards === 9 ? 'red' : 'blue'
+      return this.getNumCards('red') === 9 ? 'red' : 'blue'
     }
   },
   methods: {
+    getNumCards (team) {
+      const cards = this.cardList.filter(card => {
+        return card.role === team
+      })
+      return cards.length
+    },
     addProp: function (prop) {
-      // From the docs:
-      // Write the new post's data simultaneously in the posts list and the user's post list.
-      // var updates = {};
-      // updates['/posts/' + newPostKey] = postData;
-      // updates['/user-posts/' + uid + '/' + newPostKey] = postData;
-      // return firebase.database().ref().update(updates);
       const updates = { username: prop}
       return db.ref(this.gameId).update(updates)
     },
@@ -65,17 +65,15 @@ export default {
       const hash = this.generateHash()
       const gameId = this.gameName + '-' + hash
       this.gameId = gameId
-      console.log(this.gameId)
     },
-    // add to createGame the whose turn is it property
     setupGame: function () {
       this.setGameId()
       db.ref(this.gameId).set({
-        players: [{dummy : 'dummy'}],
+        // players: [{dummy : 'dummy'}],
         cardList: this.cardList,
-        teamTurn: this.startingTurn,
-        redCardsRemaining: this.redCards,
-        blueCardsRemaining: this.blueCards
+        teamTurn: this.startingTurn
+        // redCardsRemaining: this.redCards,
+        // blueCardsRemaining: this.blueCards
       })
       // this.getGameInfo()
       const path = '/play/' + this.gameId

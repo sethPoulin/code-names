@@ -1,19 +1,33 @@
 <template>
   <div class="container">
     <div class="header flex">
-      <!-- <h1>This is your game page</h1> -->
       <!-- <h2>Send other players this link so they can join the game:</h2> -->
       <div class="blue-cards-remain-container">
         <p class=blue-cards-remain>Blue spies remaining:</p>
-        <p class=blue-cards-remain>{{ this.data.blueCardsRemaining }}</p>
+        <p class=blue-cards-remain>{{ blueCardsRemaining }}</p>
       </div>
       <div class="center-header-container">
         <h2 class="game-link">https://code-names/play/{{ gameId }}</h2>
-        <p class="turn-message">It's {{data.teamTurn}}'s turn</p>
+        <div v-if="winner" class="win-container">
+          <p class="win-message">Woot! {{winner | capitalize}} wins!</p>
+        </div>
+        <div v-else class="turn-container flex">
+          <p 
+            v-if="data.teamTurn" 
+            class="turn-message">
+            {{ data.teamTurn | capitalize }} is playing
+          </p>
+          <base-button 
+            @click.native="endCurrentTurn()"
+            v-if="data.teamTurn" 
+            class="turn-message--end">
+            End {{data.teamTurn}}'s turn
+          </base-button>
+        </div>
       </div>
       <div class="red-cards-remain-container">
         <p class=red-cards-remain>Red spies remaining:</p>
-        <p class=red-cards-remain>{{ this.data.redCardsRemaining }}</p>
+        <p class=red-cards-remain>{{ this.redCardsRemaining }}</p>
       </div>  
     </div>
     <div class="game">
@@ -25,7 +39,7 @@
         :role="card.role"
         :isSolved="card.solved"
         :isSpymaster="!playerIsAgent"
-        @revealCard="[solveCard(card.word), updateCards()]">
+        @revealCard="solveCard(card.word)">
       </game-card>
     </div>
     <div class="player-type-container">
@@ -55,16 +69,48 @@ export default {
     GameCard,
     BaseButton
   },
+  filters: {
+    capitalize: function (word) {
+      if (!word) return ''
+      word = word.toString()
+      return word.charAt(0).toUpperCase() + word.slice(1)
+    }
+  },
   data() {
     return {
       gameId: '',
       data: '',
-      playerIsAgent: true
+      playerIsAgent: true,
+      winner: 'red',
+      cardSolvedRole: undefined
     }
   },
   created: function () {
     this.getGameId()
     this.getGameInfo()
+  },
+  mounted: function () {
+  },
+  watch: {
+    turnShouldEnd: function (val) {
+      if (val === true) {
+        this.cardSolvedRole = undefined
+        this.endCurrentTurn()
+      }
+    }
+  },
+  computed: {
+    blueCardsRemaining () {
+      if (!this.data.cardList) return
+      return this.getCardsRemaining('blue')
+    },
+    redCardsRemaining () {
+      if (!this.data.cardList) return
+      return this.getCardsRemaining('red')
+    },
+    turnShouldEnd () {
+      return (this.cardSolvedRole === 'civilian') || (this.cardSolvedRole === 'red' && this.data.teamTurn === 'blue') || (this.cardSolvedRole === 'blue' && this.data.teamTurn === 'red')
+    }
   },
   methods: {
     getGameId () {
@@ -82,19 +128,35 @@ export default {
       this.data.cardList.forEach(card => {
         if (card.word === wordStr) {
           card.solved = true
+          this.cardSolvedRole = card.role
         }
       })
+      this.updateCards() 
     },
     updateCards () {
       const updates = {}
-      updates[this.gameId] = this.data;
-      return db.ref().update(updates);
+      updates[this.gameId + '/cardList'] = this.data.cardList;
+      return db.ref().update(updates)
     },
     switchLayout () {
       this.playerIsAgent = !this.playerIsAgent
     },
+    updateTurn (team) {
+      const updates = {}
+      updates[this.gameId + '/teamTurn'] = team
+      return db.ref().update(updates)
+    },
     endCurrentTurn () {
-      // YOU ARE HERE
+      if (this.data.teamTurn === 'red') this.updateTurn('blue')
+      else {
+        this.updateTurn('red')
+      }
+    },
+    getCardsRemaining (team) {
+      const solvedCards = this.data.cardList.filter(card => {
+        return card.role === team && card.solved === false
+      })
+      return solvedCards.length
     }
   }
 }
@@ -125,7 +187,9 @@ export default {
   
   .blue-cards-remain,
   .red-cards-remain,
-  .turn-message
+  .turn-message,
+  .turn-message--end,
+  .win-message
     font-size: 1.5rem
     font-weight: 900
     padding: 0 1.5rem
@@ -139,6 +203,11 @@ export default {
       border-radius: 3px
       background-color white
       display inline-block
+
+  .turn-message--end 
+    background-color white
+    margin-right 1rem
+    padding-bottom 1rem
   
   .blue-cards-remain 
     color: rgba(37, 150, 190, 1)
