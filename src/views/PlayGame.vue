@@ -8,8 +8,13 @@
       </div>
       <div class="center-header-container">
         <h2 class="game-link">https://code-names/play/{{ gameId }}</h2>
-        <div v-if="winner" class="win-container">
+        <div v-if="winner" class="win-container flex">
           <p class="win-message">Woot! {{winner | capitalize}} wins!</p>
+          <base-button
+            class="new-game"
+            @click.native="startNewGame()">
+            New Game
+          </base-button>
         </div>
         <div v-else class="turn-container flex">
           <p 
@@ -30,7 +35,8 @@
         <p class=red-cards-remain>{{ this.redCardsRemaining }}</p>
       </div>  
     </div>
-    <div class="game">
+    <div 
+      :class="['game', {'ended' : winner}]">
       <game-card
         class="card" 
         v-for="card in data.cardList" 
@@ -39,6 +45,7 @@
         :role="card.role"
         :isSolved="card.solved"
         :isSpymaster="!playerIsAgent"
+        :gameIsOver="winner"
         @revealCard="solveCard(card.word)">
       </game-card>
     </div>
@@ -81,7 +88,7 @@ export default {
       gameId: '',
       data: '',
       playerIsAgent: true,
-      winner: 'red',
+      winner: undefined,
       cardSolvedRole: undefined
     }
   },
@@ -96,6 +103,16 @@ export default {
       if (val === true) {
         this.cardSolvedRole = undefined
         this.endCurrentTurn()
+      }
+    },
+    redCardsRemaining: function (val) {
+      if (val === 0) {
+        this.winner = 'red'
+      }
+    },
+    blueCardsRemaining: function (val) {
+      if (val === 0) {
+        this.winner = 'blue'
       }
     }
   },
@@ -129,6 +146,7 @@ export default {
         if (card.word === wordStr) {
           card.solved = true
           this.cardSolvedRole = card.role
+          if (card.role === 'assassin') this.endGame()
         }
       })
       this.updateCards() 
@@ -157,6 +175,15 @@ export default {
         return card.role === team && card.solved === false
       })
       return solvedCards.length
+    },
+    endGame () {
+      this.winner = this.data.teamTurn === 'red' ? 'blue' : 'red'
+    },
+    startNewGame () {
+      this.$router.push('/create')
+      const updates = {}
+      updates[this.gameId] = null;
+      return db.ref().update(updates)
     }
   }
 }
@@ -189,7 +216,8 @@ export default {
   .red-cards-remain,
   .turn-message,
   .turn-message--end,
-  .win-message
+  .win-message,
+  .new-game
     font-size: 1.5rem
     font-weight: 900
     padding: 0 1.5rem
@@ -204,7 +232,8 @@ export default {
       background-color white
       display inline-block
 
-  .turn-message--end 
+  .turn-message--end,
+  .new-game 
     background-color white
     margin-right 1rem
     padding-bottom 1rem
@@ -235,5 +264,10 @@ export default {
     display: grid
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     grid-gap: 1rem
+
+    &.ended 
+      opacity: 0.7
+
+  
 
 </style>
