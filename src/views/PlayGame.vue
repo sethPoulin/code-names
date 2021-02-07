@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+        <h2 class="game-link">This is your game link: https://code-names/play/{{ gameId }}</h2>
     <div class="header flex">
       <!-- <h2>Send other players this link so they can join the game:</h2> -->
       <div class="blue-cards-remain-container">
@@ -7,8 +8,7 @@
         <p class=blue-cards-remain>{{ blueCardsRemaining }}</p>
       </div>
       <div class="center-header-container">
-        <h2 class="game-link">https://code-names/play/{{ gameId }}</h2>
-        <div v-if="winner" class="win-container flex">
+        <div v-if="winner" class="win-container">
           <p class="win-message">Woot! {{winner | capitalize}} wins!</p>
           <base-button
             class="new-game"
@@ -16,11 +16,14 @@
             New Game
           </base-button>
         </div>
-        <div v-else class="turn-container flex">
+        <div v-else class="turn-container">
           <p 
             v-if="data.teamTurn" 
             class="turn-message">
-            {{ data.teamTurn | capitalize }} is playing
+            <span :class="data.teamTurn">
+              {{ data.teamTurn | capitalize }} 
+            </span>
+            is playing
           </p>
           <base-button 
             @click.native="endCurrentTurn()"
@@ -49,7 +52,7 @@
         @revealCard="solveCard(card.word)">
       </game-card>
     </div>
-    <div class="player-type-container">
+    <div class="player-type-container flex">
       <base-button class="player-role" 
         v-if="playerIsAgent"
         @click.native="switchLayout()">
@@ -59,6 +62,11 @@
         v-else
         @click.native="switchLayout()">
           PLAY AS AGENT
+      </base-button>
+      <base-button 
+        class="start-new"
+        @click.native="startNewGame()">
+          START NEW GAME
       </base-button>
     </div>
   </div>
@@ -196,6 +204,10 @@ export default {
   * 
     margin-top: 0
 
+  .header 
+    max-width: 1000px
+    margin: 0 auto
+
   .flex 
     display: flex
     width: 100%
@@ -211,6 +223,17 @@ export default {
     background-color: rgb(235, 234, 234)
     margin-bottom: 1.7rem
     box-shadow: 6px 6px 12px rgba(0,0,0,0.2)
+    border-radius: 8px
+    max-width: 300px
+
+    // p:nth-of-type(2)
+    //   margin-bottom: 0
+  
+  .center-header-container 
+    max-width: 350px
+
+    button
+      margin 0 1.5rem 1rem 1.5rem
   
   .blue-cards-remain,
   .red-cards-remain,
@@ -218,11 +241,13 @@ export default {
   .turn-message--end,
   .win-message,
   .new-game
-    font-size: 1.5rem
+    font-size: 1.2rem
     font-weight: 900
     padding: 0 1.5rem
     margin-bottom 1rem
     border-radius: 3px
+    // display: inline
+    text-transform: uppercase
 
     &:first-of-type 
       padding-top: 1rem
@@ -231,12 +256,26 @@ export default {
       border-radius: 3px
       background-color white
       display inline-block
+  
+  .blue-cards-remain,
+  .red-cards-remain
+    padding: 0.5rem 1.5rem
+
+  .turn-message 
+    span 
+      &.red 
+        color: rgba(210, 67, 51, 1)
+      &.blue 
+        color: rgba(37, 150, 190, 1)
+    // span 
+    //   display: block
 
   .turn-message--end,
   .new-game 
     background-color white
-    margin-right 1rem
-    padding-bottom 1rem
+    // margin-right 1rem
+    padding 1rem
+    margin: 2rem
   
   .blue-cards-remain 
     color: rgba(37, 150, 190, 1)
@@ -247,6 +286,7 @@ export default {
   .game-link 
     padding: 1rem 2rem
     margin-bottom 0
+    color: rgb(198, 198, 198)
   
   .container 
     max-width 95%
@@ -254,16 +294,23 @@ export default {
 
   .player-type-container  
     margin-bottom: 2rem
+    max-width: 1000px
+    margin: 0 auto
 
-  .player-role 
+  .player-role,
+  .start-new 
     font-weight: bold
+
+  // .player-role 
+  //   margin: 0 auto
   
   .game 
-    max-width: 1200px
-    margin: 0 auto 2rem
+    max-width: 1000px
+    margin: 0 auto 1.6rem
     display: grid
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    grid-gap: 1rem
+    // grid-template-columns: 180px 180px 180px 180px 180px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr
+    grid-gap: 0.6rem
 
     &.ended 
       opacity: 0.7
