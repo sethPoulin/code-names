@@ -188,12 +188,24 @@ export default {
       this.winner = this.data.teamTurn === 'red' ? 'blue' : 'red'
     },
     startNewGame () {
-      this.$router.push('/create')
+      this.$router.push('/create').catch(() => {});
+    },
+    destroyGame () {
       const updates = {}
       updates[this.gameId] = null;
       return db.ref().update(updates)
     }
+  },
+  beforeRouteLeave (to, from, next) {
+  console.log(to, from)
+  const answer = window.confirm('Do you really want to leave? you have unsaved changes!')
+  if (answer) {
+    next()
+    this.destroyGame()
+  } else {
+    next(false)
   }
+}
 }
 
 
