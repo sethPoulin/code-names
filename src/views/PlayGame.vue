@@ -109,6 +109,17 @@ export default {
   mounted: function () {
   },
   watch: {
+    // cardSolvedRole: function (val) {
+    //   if (val === 'assassin') {
+    //     this.endGame()
+    //   }
+    // },
+    data: function (val) {
+      if (val.winner === 'red' || val.winner === 'blue') {
+        this.winner = val.winner
+      }
+      if (val.winner === 'empty') this.winner = undefined
+    },
     turnShouldEnd: function (val) {
       if (val === true) {
         this.cardSolvedRole = undefined
@@ -187,8 +198,10 @@ export default {
       return solvedCards.length
     },
     endGame () {
-      this.winner = this.data.teamTurn === 'red' ? 'blue' : 'red'
       this.restartProtected = false
+      const updates = {}
+      updates[this.gameId + '/winner'] = this.data.teamTurn === 'red' ? 'blue' : 'red'
+      return db.ref().update(updates)
     },
     // startNewGame () {
     //   this.$router.push('/play/' + this.gameId ).catch(() => {});
@@ -205,7 +218,8 @@ export default {
         else startTeam = this.data.teamTurn
         db.ref(this.gameId).set({
           cardList: cardList,
-          teamTurn: startTeam
+          teamTurn: startTeam,
+          winner: 'empty'
         })
         this.winner = undefined
         // updates[this.gameId + '/cardList'] = cardList
