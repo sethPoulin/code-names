@@ -3,14 +3,14 @@
     <h1>CODE NAMES</h1>
     <form v-on:submit.prevent="setupGame()">
       <label for="game">Please enter a name for your game: </label>
-      <p v-if="checkInput && errorNumberOfLetters" class="error-message">Please enter a name with at least 3 characters</p>
-      <p v-if="checkInput && errorUsesSymbols" class="error-message">Please only use numbers or letters</p>
+      <p v-if="checkErrors && errorNumberOfLetters" class="error-message">Please choose a name with at least 4 letters</p>
+      <p v-if="checkErrors && errorUsesSymbols" class="error-message">Please use only letters in your name</p>
       <input v-model="gameName" type="text" id="game" placeholder="Ex: kowabunga">
     </form>
     <base-button 
-      @click.native="validateInput()"
-      :disabled="!inputIsValid"
-      :class="{'no-cursor' : !inputIsValid}">
+      @click.native="setupGame()"
+      :disabled="!inputIsValid && checkErrors" 
+      :class="{'no-cursor' : !inputIsValid && checkErrors}">
       Create new game</base-button>
     <p>{{ data.username }}</p>
   </div>
@@ -36,43 +36,32 @@ export default {
       data: '',
       gameId: undefined,
       cardList: undefined,
-      errors: {
-        numLetters: false,
-        usesSymbols: false
-      // redCards: undefined,
-      // blueCards: undefined
-      },
-      checkInput: false
+      checkErrors: false
     }
   },
 
   created: function () {
     const list = new wordList
     this.cardList = list.cardList
-    // const teamCards = new teamData
-    // const teamCardNums = teamCards.teamCardNums
-    // this.redCards = teamCardNums.red
-    // this.blueCards = teamCardNums.blue
   },
   computed: {
     startingTurn () {
       return this.getNumCards('red') === 9 ? 'red' : 'blue'
     },
     inputIsValid () {
-      return !this.errors.numLetters && !this.errors.usesSymbols
+      return this.errorNumberOfLetters === false && this.errorUsesSymbols === false
     },
-    // TODO use computed getter here and return errors.numLetters and errors.usesSymbols
     errorNumberOfLetters () {
-      return this.gameName.trim().length < 3
+      return this.gameName.trim().length < 4
     },
     errorUsesSymbols () {
       if (this.gameName.length < 2) return
       const validChars = 'abcdefghijklmnopqrstuvwxyz'
       const gameLetters = this.gameName.split('')
-      const hasInvalidChars = gameLetters.find(letter => {
+      const invalidChars = gameLetters.filter(letter => {
         return validChars.indexOf(letter) === -1
       })
-      return hasInvalidChars.length > 0
+      return invalidChars.length > 0
     }
   },
   methods: {
@@ -101,23 +90,18 @@ export default {
       this.gameId = gameId
     },
     setupGame: function () {
+      this.validateInput()
+      if (this.errorNumberOfLetters || this.errorUsesSymbols) return
       this.setGameId()
       db.ref(this.gameId).set({
-        // players: [{dummy : 'dummy'}],
         cardList: this.cardList,
         teamTurn: this.startingTurn
-        // redCardsRemaining: this.redCards,
-        // blueCardsRemaining: this.blueCards
       })
-      // this.getGameInfo()
       const path = '/play/' + this.gameId
       this.$router.push({ path })
     },
     validateInput () {
-      console.log('validate is running')
-      if(this.gameName.trim().length < 3) {
-        this.errors.numLetters = true 
-      }
+      this.checkErrors = true
     }
 
   }
