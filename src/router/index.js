@@ -16,7 +16,7 @@ const routes = [
     path: '/play/:game',
     name: 'play',
     component: PlayGame
-    // component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    // TODO: add error handling if user enters /play/something-invalid.  Would need to contact the game db and makes sure gameName exists, otherwise forward to an oops it looks like that page doesn't exist page.  
   },
   {
     path: '*',

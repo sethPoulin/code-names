@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-        <h2 class="game-link">This is your game link: https://code-names/play/{{ gameId }}</h2>
+        <!-- <h2 class="game-link">This is your game link: https://code-names/play/{{ gameId }}</h2> -->
     <div class="header flex">
       <!-- <h2>Send other players this link so they can join the game:</h2> -->
       <div class="blue-cards-remain-container">
@@ -97,7 +97,8 @@ export default {
       data: '',
       playerIsAgent: true,
       winner: undefined,
-      cardSolvedRole: undefined
+      cardSolvedRole: undefined,
+      restartProtected: true
     }
   },
   created: function () {
@@ -186,6 +187,7 @@ export default {
     },
     endGame () {
       this.winner = this.data.teamTurn === 'red' ? 'blue' : 'red'
+      this.restartProtected = false
     },
     startNewGame () {
       this.$router.push('/create').catch(() => {});
@@ -197,7 +199,12 @@ export default {
     }
   },
   beforeRouteLeave (to, from, next) {
-  const answer = window.confirm('Do you really want to leave? you have unsaved changes!')
+  if (!this.restartProtected) {
+    next()
+    this.destroyGame()
+    return
+  }
+  const answer = window.confirm('Do you really want to start a new game? Your current game will be lost!')
   if (answer) {
     next()
     this.destroyGame()
@@ -235,7 +242,7 @@ export default {
     margin-bottom: 1.7rem
     box-shadow: 6px 6px 12px rgba(0,0,0,0.2)
     border-radius: 8px
-    max-width: 300px
+    max-width: 280px
 
     // p:nth-of-type(2)
     //   margin-bottom: 0
@@ -270,7 +277,7 @@ export default {
   
   .blue-cards-remain,
   .red-cards-remain
-    padding: 0.5rem 1.5rem
+    padding: 0.4rem 1.1rem
 
   .turn-message 
     span 
@@ -301,7 +308,9 @@ export default {
   
   .container 
     max-width 95%
+    min-width: 795px
     margin: 0 auto
+    padding-top: 2rem
 
   .player-type-container  
     margin-bottom: 2rem

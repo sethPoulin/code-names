@@ -57,7 +57,7 @@ export default {
     errorUsesSymbols () {
       if (this.gameName.length < 2) return
       const validChars = 'abcdefghijklmnopqrstuvwxyz'
-      const gameLetters = this.gameName.split('')
+      const gameLetters = this.gameName.toLowerCase().split('')
       const invalidChars = gameLetters.filter(letter => {
         return validChars.indexOf(letter) === -1
       })
