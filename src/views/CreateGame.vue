@@ -2,11 +2,16 @@
   <div>
     <h1>CODE NAMES</h1>
     <form v-on:submit.prevent="setupGame()">
-      <label for="game">Enter a name for your game: </label>
-      <p v-if="!inputIsValid" class="error-message">Please enter a name with at least 3 characters</p>
+      <label for="game">Please enter a name for your game: </label>
+      <p v-if="checkInput && errorNumberOfLetters" class="error-message">Please enter a name with at least 3 characters</p>
+      <p v-if="checkInput && errorUsesSymbols" class="error-message">Please only use numbers or letters</p>
       <input v-model="gameName" type="text" id="game" placeholder="Ex: kowabunga">
     </form>
-    <base-button @click.native="setupGame()">Create new game</base-button>
+    <base-button 
+      @click.native="validateInput()"
+      :disabled="!inputIsValid"
+      :class="{'no-cursor' : !inputIsValid}">
+      Create new game</base-button>
     <p>{{ data.username }}</p>
   </div>
 </template>
@@ -17,6 +22,8 @@ import { db } from '@/db.js'
 import { wordList } from '@/utils/wordlist.service.js'
 import BaseButton from '@/components/BaseButton.vue'
 // import { teamData } from '@/utils/teamData.service.js'
+// 1. When user clicks create game, run checks and create a watcher
+// 2. run checks() creates a watcher to run whenever user changes input
 
 export default {
   name: 'recent',
@@ -29,9 +36,13 @@ export default {
       data: '',
       gameId: undefined,
       cardList: undefined,
-      inputIsValid: false
+      errors: {
+        numLetters: false,
+        usesSymbols: false
       // redCards: undefined,
       // blueCards: undefined
+      },
+      checkInput: false
     }
   },
 
@@ -46,6 +57,22 @@ export default {
   computed: {
     startingTurn () {
       return this.getNumCards('red') === 9 ? 'red' : 'blue'
+    },
+    inputIsValid () {
+      return !this.errors.numLetters && !this.errors.usesSymbols
+    },
+    // TODO use computed getter here and return errors.numLetters and errors.usesSymbols
+    errorNumberOfLetters () {
+      return this.gameName.trim().length < 3
+    },
+    errorUsesSymbols () {
+      if (this.gameName.length < 2) return
+      const validChars = 'abcdefghijklmnopqrstuvwxyz'
+      const gameLetters = this.gameName.split('')
+      const hasInvalidChars = gameLetters.find(letter => {
+        return validChars.indexOf(letter) === -1
+      })
+      return hasInvalidChars.length > 0
     }
   },
   methods: {
@@ -85,7 +112,14 @@ export default {
       // this.getGameInfo()
       const path = '/play/' + this.gameId
       this.$router.push({ path })
+    },
+    validateInput () {
+      console.log('validate is running')
+      if(this.gameName.trim().length < 3) {
+        this.errors.numLetters = true 
+      }
     }
+
   }
 }
 // reference: https://firebase.google.com/docs/database/web/read-and-write
@@ -129,14 +163,16 @@ export default {
     font-size: 1.1rem
 
   .error-message 
+    max-width: 31rem
     color: rgba(210, 67, 51, 1)
     font-size: 1.4rem
     font-weight: bold
     background: white
-    display: inline-block 
-    text-align: center
+    display: block 
+    margin: 0 auto
     border-radius: 8px
     padding: 0.4rem 1.2rem
+    margin-bottom: 0.7rem
 
 </style>
 

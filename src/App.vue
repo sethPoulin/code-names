@@ -19,4 +19,7 @@ html
   text-align center
   color #2c3e50
   margin-top 10px
+  
+.no-cursor 
+    cursor: not-allowed
 </style>
