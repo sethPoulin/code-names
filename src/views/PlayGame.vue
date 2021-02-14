@@ -334,6 +334,9 @@ export default {
 
     &.ended 
       opacity: 0.7
+    
+    .no-cursor 
+      cursor: not-allowed
 
   
 
