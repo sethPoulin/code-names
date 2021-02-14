@@ -12,7 +12,7 @@
           <p class="win-message">Woot! {{winner | capitalize}} wins!</p>
           <base-button
             class="new-game"
-            @click.native="startNewGame()">
+            @click.native="destroyGame()">
             New Game
           </base-button>
         </div>
@@ -65,7 +65,7 @@
       </base-button>
       <base-button 
         class="start-new"
-        @click.native="startNewGame()">
+        @click.native="destroyGame()">
           START NEW GAME
       </base-button>
     </div>
@@ -76,6 +76,7 @@
 
 import GameCard from '@/components/GameCard'
 import { db } from '@/db'
+import { wordList } from '@/utils/wordlist.service.js'
 import BaseButton from '@/components/BaseButton.vue'
 
 export default {
@@ -189,29 +190,51 @@ export default {
       this.winner = this.data.teamTurn === 'red' ? 'blue' : 'red'
       this.restartProtected = false
     },
-    startNewGame () {
-      this.$router.push('/create').catch(() => {});
-    },
+    // startNewGame () {
+    //   this.$router.push('/play/' + this.gameId ).catch(() => {});
+    // },
     destroyGame () {
-      const updates = {}
-      updates[this.gameId] = null;
-      return db.ref().update(updates)
+      if (this.restartProtected) this.confirmRestart()
+      if (!this.restartProtected) {
+        // const updates = {}
+        this.restartProtected = true
+        const list = new wordList
+        const cardList = list.cardList
+        let startTeam = undefined
+        if (this.winner) startTeam = this.winner
+        else startTeam = this.data.teamTurn
+        db.ref(this.gameId).set({
+          cardList: cardList,
+          teamTurn: startTeam
+        })
+        // updates[this.gameId + '/cardList'] = cardList
+        // updates[this.gameId + '/teamTurn'] = this.winner
+        // return db.ref().update(updates)
+      }
+    },
+    confirmRestart () {
+      const answer = window.confirm('Do you really want to start a new game? Your current game will be lost!')
+      if (answer) {
+        this.restartProtected = false
+        this.destroyGame()
+      }
+      else return
     }
   },
-  beforeRouteLeave (to, from, next) {
-  if (!this.restartProtected) {
-    next()
-    this.destroyGame()
-    return
-  }
-  const answer = window.confirm('Do you really want to start a new game? Your current game will be lost!')
-  if (answer) {
-    next()
-    this.destroyGame()
-  } else {
-    next(false)
-  }
-}
+//   beforeRouteLeave (to, from, next) {
+//   if (!this.restartProtected) {
+//     next()
+//     this.destroyGame()
+//     return
+//   }
+//   const answer = window.confirm('Do you really want to start a new game? Your current game will be lost!')
+//   if (answer) {
+//     next()
+//     this.destroyGame()
+//   } else {
+//     next(false)
+//   }
+// }
 }
 
 
