@@ -207,6 +207,7 @@ export default {
           cardList: cardList,
           teamTurn: startTeam
         })
+        this.winner = undefined
         // updates[this.gameId + '/cardList'] = cardList
         // updates[this.gameId + '/teamTurn'] = this.winner
         // return db.ref().update(updates)
