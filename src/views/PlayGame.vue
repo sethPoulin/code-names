@@ -117,8 +117,12 @@ export default {
     data: function (val) {
       if (val.winner === 'red' || val.winner === 'blue') {
         this.winner = val.winner
+        this.restartProtected = false
       }
-      if (val.winner === 'empty') this.winner = undefined
+      if (val.winner === 'empty') {
+        this.winner = undefined
+        this.restartProtected = true
+      }
     },
     turnShouldEnd: function (val) {
       if (val === true) {
@@ -221,7 +225,7 @@ export default {
           teamTurn: startTeam,
           winner: 'empty'
         })
-        this.winner = undefined
+        // this.winner = undefined
         // updates[this.gameId + '/cardList'] = cardList
         // updates[this.gameId + '/teamTurn'] = this.winner
         // return db.ref().update(updates)
