@@ -12,7 +12,7 @@
           <p class="win-message">Woot! {{winner | capitalize}} wins!</p>
           <base-button
             class="new-game"
-            @click.native="destroyGame()">
+            @click.native="startNewGame()">
             New Game
           </base-button>
         </div>
@@ -65,7 +65,7 @@
       </base-button>
       <base-button 
         class="start-new"
-        @click.native="destroyGame()">
+        @click.native="startNewGame()">
           START NEW GAME
       </base-button>
     </div>
@@ -109,11 +109,11 @@ export default {
   mounted: function () {
   },
   watch: {
-    // cardSolvedRole: function (val) {
-    //   if (val === 'assassin') {
-    //     this.endGame()
-    //   }
-    // },
+    cardSolvedRole: function (val) {
+      if (val === 'assassin') {
+        this.endGameByAssassin()
+      }
+    },
     data: function (val) {
       if (val.winner === 'red' || val.winner === 'blue') {
         this.winner = val.winner
@@ -153,6 +153,11 @@ export default {
     turnShouldEnd () {
       return (this.cardSolvedRole === 'civilian') || (this.cardSolvedRole === 'red' && this.data.teamTurn === 'blue') || (this.cardSolvedRole === 'blue' && this.data.teamTurn === 'red')
     }
+    // assassinWasPlayed () {
+    //   const assassin = this.data.cardList.find(card => card.solved && card.role === 'assassin')
+    //   console.log(assassin)
+    //   return assassin !== undefined
+    // }
   },
   methods: {
     getGameId () {
@@ -171,10 +176,13 @@ export default {
         if (card.word === wordStr) {
           card.solved = true
           this.cardSolvedRole = card.role
-          if (card.role === 'assassin') this.endGame()
         }
       })
       this.updateCards() 
+      // if (this.assassinWasPlayed) {
+      //   this.endGameByAssassin()
+      //   return
+      // }
     },
     updateCards () {
       const updates = {}
@@ -201,20 +209,18 @@ export default {
       })
       return solvedCards.length
     },
-    endGame () {
+    endGameByAssassin () {
       this.restartProtected = false
       const updates = {}
       updates[this.gameId + '/winner'] = this.data.teamTurn === 'red' ? 'blue' : 'red'
       return db.ref().update(updates)
     },
-    // startNewGame () {
-    //   this.$router.push('/play/' + this.gameId ).catch(() => {});
-    // },
-    destroyGame () {
+    startNewGame () {
       if (this.restartProtected) this.confirmRestart()
       if (!this.restartProtected) {
-        // const updates = {}
         this.restartProtected = true
+        this.cardSolvedRole = undefined
+        this.playerIsAgent = true
         const list = new wordList
         const cardList = list.cardList
         let startTeam = undefined
@@ -223,37 +229,20 @@ export default {
         db.ref(this.gameId).set({
           cardList: cardList,
           teamTurn: startTeam,
+          // object properties cannot be undefined in Firebase
           winner: 'empty'
         })
-        // this.winner = undefined
-        // updates[this.gameId + '/cardList'] = cardList
-        // updates[this.gameId + '/teamTurn'] = this.winner
-        // return db.ref().update(updates)
       }
     },
     confirmRestart () {
       const answer = window.confirm('Do you really want to start a new game? Your current game will be lost!')
       if (answer) {
         this.restartProtected = false
-        this.destroyGame()
+        this.startNewGame()
       }
       else return
     }
-  },
-//   beforeRouteLeave (to, from, next) {
-//   if (!this.restartProtected) {
-//     next()
-//     this.destroyGame()
-//     return
-//   }
-//   const answer = window.confirm('Do you really want to start a new game? Your current game will be lost!')
-//   if (answer) {
-//     next()
-//     this.destroyGame()
-//   } else {
-//     next(false)
-//   }
-// }
+  }
 }
 
 
