@@ -6,7 +6,7 @@ module.exports = {
       .use('raw-loader')
       .loader('raw-loader')
       .end()
-      
+    // according to https://cli.vuejs.org/guide/webpack.html#modifying-options-of-a-loader you don't need to write this second config.module and can go right to .rule()  
     config.module
       .rule('vue')
       .use('vue-loader')

@@ -96,7 +96,8 @@ export default {
       db.ref(this.gameId).set({
         cardList: this.cardList,
         teamTurn: this.startingTurn,
-        winner: 'empty'
+        winner: 'empty',
+        startedCurrentGame: this.startingTurn
       })
       const path = '/play/' + this.gameId
       this.$router.push({ path })

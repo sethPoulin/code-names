@@ -3,9 +3,10 @@ import originalWords from '@/assets/original-words.txt'
 const origWords = originalWords.split('\n')
 
 class wordList {
-  constructor () {
+  constructor (winner = undefined) {
     this.wordsArray = origWords
     this.cardAssignments = []
+    this.winner = winner
   }
 
   getRandomIndex = (array) => {
@@ -29,6 +30,9 @@ class wordList {
   }
 
   assignCardNums () {
+    if (this.winner) {
+      return this.winner === 'red' ? { numRedSpies: 9, numBlueSpies: 8 } : { numBlueSpies: 9, numRedSpies: 8}
+    }
     const value = this.getRandomInt()
     return {
       numBlueSpies: value === 0 ? 9 : 8,

@@ -133,11 +133,13 @@ export default {
     redCardsRemaining: function (val) {
       if (val === 0) {
         this.winner = 'red'
+        this.restartProtected = false
       }
     },
     blueCardsRemaining: function (val) {
       if (val === 0) {
         this.winner = 'blue'
+        this.restartProtected = false
       }
     }
   },
@@ -153,11 +155,6 @@ export default {
     turnShouldEnd () {
       return (this.cardSolvedRole === 'civilian') || (this.cardSolvedRole === 'red' && this.data.teamTurn === 'blue') || (this.cardSolvedRole === 'blue' && this.data.teamTurn === 'red')
     }
-    // assassinWasPlayed () {
-    //   const assassin = this.data.cardList.find(card => card.solved && card.role === 'assassin')
-    //   console.log(assassin)
-    //   return assassin !== undefined
-    // }
   },
   methods: {
     getGameId () {
@@ -179,10 +176,6 @@ export default {
         }
       })
       this.updateCards() 
-      // if (this.assassinWasPlayed) {
-      //   this.endGameByAssassin()
-      //   return
-      // }
     },
     updateCards () {
       const updates = {}
@@ -193,6 +186,7 @@ export default {
       this.playerIsAgent = !this.playerIsAgent
     },
     updateTurn (team) {
+      this.cardSolvedRole = undefined
       const updates = {}
       updates[this.gameId + '/teamTurn'] = team
       return db.ref().update(updates)
@@ -221,16 +215,15 @@ export default {
         this.restartProtected = true
         this.cardSolvedRole = undefined
         this.playerIsAgent = true
-        const list = new wordList
+        const startTeam = this.winner ? this.winner : this.data.startedCurrentGame
+        const list = new wordList(startTeam)
         const cardList = list.cardList
-        let startTeam = undefined
-        if (this.winner) startTeam = this.winner
-        else startTeam = this.data.teamTurn
         db.ref(this.gameId).set({
           cardList: cardList,
           teamTurn: startTeam,
           // object properties cannot be undefined in Firebase
-          winner: 'empty'
+          winner: 'empty',
+          startedCurrentGame: startTeam 
         })
       }
     },
