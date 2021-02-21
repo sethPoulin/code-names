@@ -1,6 +1,10 @@
 <template>
   <div class="container">
-        <!-- <h2 class="game-link">This is your game link: https://code-names/play/{{ gameId }}</h2> -->
+        <h2 class="game-link">Share this game link: 
+          <span>
+            https://code-names-seth.netlify.app/play/{{ gameId }}
+          </span>
+        </h2>
     <div class="header flex">
       <!-- <h2>Send other players this link so they can join the game:</h2> -->
       <div class="blue-cards-remain-container">
@@ -216,14 +220,17 @@ export default {
         this.cardSolvedRole = undefined
         this.playerIsAgent = true
         const startTeam = this.winner ? this.winner : this.data.startedCurrentGame
-        const list = new wordList(startTeam)
+        const wordsRemaining = this.data.remainingWords && this.data.remainingWords.length >= 25 ? this.data.remainingWords : undefined
+        const list = new wordList(startTeam, wordsRemaining)
         const cardList = list.cardList
+        const remainingWords = list.remainingWords
         db.ref(this.gameId).set({
           cardList: cardList,
           teamTurn: startTeam,
           // object properties cannot be undefined in Firebase
           winner: 'empty',
-          startedCurrentGame: startTeam 
+          startedCurrentGame: startTeam,
+          remainingWords: remainingWords
         })
       }
     },
@@ -327,14 +334,20 @@ export default {
 
   .game-link 
     padding: 1rem 2rem
-    margin-bottom 0
+    margin-bottom 7px
+    font-weight: 500
+    font-size: 20px
     color: rgb(198, 198, 198)
+
+    span 
+      font-weight: 700
+      font-size: 22px
   
   .container 
     max-width 95%
     min-width: 795px
     margin: 0 auto
-    padding-top: 2rem
+    padding-top: 1rem
 
   .player-type-container  
     margin-bottom: 2rem

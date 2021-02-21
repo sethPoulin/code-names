@@ -43,6 +43,7 @@ export default {
   created: function () {
     const list = new wordList
     this.cardList = list.cardList
+    this.remainingWords = list.remainingWords
   },
   computed: {
     startingTurn () {
@@ -97,7 +98,8 @@ export default {
         cardList: this.cardList,
         teamTurn: this.startingTurn,
         winner: 'empty',
-        startedCurrentGame: this.startingTurn
+        startedCurrentGame: this.startingTurn,
+        remainingWords: this.remainingWords
       })
       const path = '/play/' + this.gameId
       this.$router.push({ path })

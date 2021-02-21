@@ -1,10 +1,12 @@
 import originalWords from '@/assets/original-words.txt'
 
-const origWords = originalWords.split('\n')
-
 class wordList {
-  constructor (winner = undefined) {
-    this.wordsArray = origWords
+  constructor (winner = undefined, remainingWordsArr = undefined) {
+    if (remainingWordsArr) {
+      this.wordsArray = remainingWordsArr
+    } else {
+      this.wordsArray = originalWords.split('\n')
+    }
     this.cardAssignments = []
     this.winner = winner
   }
@@ -58,6 +60,10 @@ class wordList {
       cardAssignmentsCopy.splice(index, 1)
     }
     return cardOrder
+  }
+
+  get remainingWords () {
+    return this.wordsArray
   }
 
   get cardList () {
