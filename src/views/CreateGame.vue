@@ -6,13 +6,29 @@
       <p v-if="checkErrors && errorNumberOfLetters" class="error-message">Please choose a name with at least 4 letters</p>
       <p v-if="checkErrors && errorUsesSymbols" class="error-message">Please use only letters in your name</p>
       <input v-model="gameName" type="text" id="game" placeholder="Ex: kowabunga">
+    <!-- <p>{{ data.username }}</p> -->
+      <fieldset>
+        <legend>Select the word lists you'd like to include:</legend>
+        <div class="word-option">
+          <label for="standard">Standard words</label>
+          <input type="checkbox" id="standard" value="original"  v-model="wordlists">
+        </div>
+        <div class="word-option">
+          <label for="duet">Duet words</label>
+          <input type="checkbox" id="duet" value="duet" v-model="wordlists">
+        </div>
+        <div class="word-option">
+          <label for="undercover">Undercover words (NSFW)</label>
+          <input type="checkbox" id="undercover" value="undercover" v-model="wordlists">
+        </div>
+      </fieldset>
+      <base-button 
+        @click="setupGame()"
+        :disabled="!inputIsValid && checkErrors" 
+        :class="{'no-cursor' : !inputIsValid && checkErrors}">
+        Create new game
+      </base-button>
     </form>
-    <base-button 
-      @click.native="setupGame()"
-      :disabled="!inputIsValid && checkErrors" 
-      :class="{'no-cursor' : !inputIsValid && checkErrors}">
-      Create new game</base-button>
-    <p>{{ data.username }}</p>
   </div>
 </template>
 
@@ -30,40 +46,56 @@ export default {
   components: {
     BaseButton
   },
+  filters: {
+    charsOnly: function (str) {
+      return str.replace(/\s+/g, '')
+    }
+  },
   data() {
     return {
       gameName: '',
       data: '',
       gameId: undefined,
       cardList: undefined,
-      checkErrors: false
+      checkErrors: false,
+      wordlists: ['original']
     }
   },
 
   created: function () {
-    const list = new wordList
-    this.cardList = list.cardList
-    this.remainingWords = list.remainingWords
+    
   },
   computed: {
     startingTurn () {
       return this.getNumCards('red') === 9 ? 'red' : 'blue'
     },
     inputIsValid () {
-      return this.errorNumberOfLetters === false && this.errorUsesSymbols === false
+      return this.errorNumberOfLetters === false
+      && this.errorUsesSymbols === false
     },
     errorNumberOfLetters () {
-      return this.gameName.trim().length < 4
+      return this.gameName.replace(/\s+/g, '').length < 4
     },
     errorUsesSymbols () {
-      if (this.gameName.length < 2) return
-      const validChars = 'abcdefghijklmnopqrstuvwxyz'
-      const gameLetters = this.gameName.toLowerCase().split('')
+      if (this.gameName.length < 4) return
+      const validChars = ' abcdefghijklmnopqrstuvwxyz'
+      const spacesRemoved = this.gameName.replace(/\s+/g, '')
+      const gameLetters = spacesRemoved.toLowerCase().split('')
       const invalidChars = gameLetters.filter(letter => {
         return validChars.indexOf(letter) === -1
       })
       return invalidChars.length > 0
-    }
+    },
+    // selectedWordlists () {
+    //   const selectedWords = []
+    //   for (const list in this.wordlists) {
+    //     console.log(list === true)
+    //     if (list === true) selectedWords.push(list)
+    //     console.log(selectedWords)
+    //   }
+    //   console.log(selectedWords)
+    //   return selectedWords
+    // }
   },
   methods: {
     getNumCards (team) {
@@ -76,8 +108,14 @@ export default {
       const updates = { username: prop}
       return db.ref(this.gameId).update(updates)
     },
+    createCardlist: function () {
+      console.log(this.wordlists)
+      const list = new wordList(undefined, undefined, this.wordlists)
+      this.cardList = list.cardList
+      this.remainingWords = list.remainingWords
+    },
     generateHash: function () {
-      const chars = 'abcdefghijkmnpqrstuvwxyz23456789'
+      const chars = '23456789'
       const numOfChars = 4
       const hash = []
       for ( var i = 0; i < numOfChars; i++ ) {
@@ -87,13 +125,14 @@ export default {
     },
     setGameId: function () {
       const hash = this.generateHash()
-      const gameId = this.gameName + '-' + hash
+      const gameId = this.gameName.replace(/\s+/g, '') + '-' + hash
       this.gameId = gameId
     },
     setupGame: function () {
       this.validateInput()
       if (this.errorNumberOfLetters || this.errorUsesSymbols) return
       this.setGameId()
+      this.createCardlist()
       db.ref(this.gameId).set({
         cardList: this.cardList,
         teamTurn: this.startingTurn,
@@ -106,6 +145,9 @@ export default {
     },
     validateInput () {
       this.checkErrors = true
+    },
+    logit (event) {
+      console.log(event)
     }
 
   }
@@ -125,25 +167,27 @@ export default {
 
 
   h1,
-  label
+  label,
+  legend
     color: rgb(198, 198, 198)
 
-  label 
-    font-weight: bold
-    letter-spacing: 0.1rem
-  
   label,
   input 
     display: block
     margin: 0 auto
-    margin-bottom: 2rem
     font-size: 1.6rem
+
+  label 
+    font-weight: bold
+    letter-spacing: 0.1rem
+    margin-bottom: 2rem
 
   input 
     padding: 0.8rem 1.2rem 
     text-align: center 
     color: rgb(64, 64, 64)
     border-radius: 8px
+    margin-bottom: 3rem
 
   button 
     text-transform: uppercase
@@ -161,6 +205,40 @@ export default {
     border-radius: 8px
     padding: 0.4rem 1.2rem
     margin-bottom: 0.7rem
+
+  fieldset 
+    display: flex
+    flex-direction: column
+    // align-items: center
+    padding: 1rem 1.1rem
+    border: none
+    width: 32rem
+    margin: 0 auto
+
+  legend 
+    font-size: 1.6rem
+    font-weight: 700
+    text-align: center
+    padding-bottom: 1rem
+
+  .word-option 
+    display: flex
+    justify-content: space-between
+    margin-left: 2rem
+    margin-right: 0
+    width: 25rem
+    text-align: center
+
+    input 
+      margin-left: 0
+      margin-right: 0
+
+    label
+      width: 343px
+      text-align: left
+      margin-right: 0
+      margin-left: 0
+      font-weight: normal
 
 </style>
 

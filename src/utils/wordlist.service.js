@@ -1,11 +1,29 @@
-import originalWords from '@/assets/original-words.txt'
+import originalWordsList from '@/assets/original-words.txt'
+import duetWordsList from '@/assets/duet.txt'
+import undercoverWordsList from '@/assets/undercover.txt'
 
 class wordList {
-  constructor (winner = undefined, remainingWordsArr = undefined) {
+  constructor (winner, remainingWordsArr, wordsArr) {
     if (remainingWordsArr) {
       this.wordsArray = remainingWordsArr
     } else {
-      this.wordsArray = originalWords.split('\n')
+      const [duetWords, originalWords, undercoverWords] = [duetWordsList, originalWordsList, undercoverWordsList].map(list => {
+        return list.split('\n')
+      })
+      const newWordList = []
+      const wordlistOptions = {
+        duet: duetWords,
+        original: originalWords,
+        undercover: undercoverWords
+      }
+      for (let list in wordlistOptions) {
+        if (wordsArr.indexOf(list) > -1) {
+          console.log(list)
+          newWordList.push(...wordlistOptions[list])
+        }
+      }
+      console.log(newWordList)
+      this.wordsArray = newWordList
     }
     this.cardAssignments = []
     this.winner = winner
