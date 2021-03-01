@@ -6,7 +6,6 @@
       <p v-if="checkErrors && errorNumberOfLetters" class="error-message">Please choose a name with at least 4 letters</p>
       <p v-if="checkErrors && errorUsesSymbols" class="error-message">Please use only letters in your name</p>
       <input v-model="gameName" type="text" id="game" placeholder="Ex: kowabunga">
-    <!-- <p>{{ data.username }}</p> -->
       <fieldset>
         <legend>Select the word lists you'd like to include:</legend>
         <div class="word-option">
@@ -109,7 +108,7 @@ export default {
       return db.ref(this.gameId).update(updates)
     },
     createCardlist: function () {
-      console.log(this.wordlists)
+      // console.log(this.wordlists)
       const list = new wordList(undefined, undefined, this.wordlists)
       this.cardList = list.cardList
       this.remainingWords = list.remainingWords
@@ -145,11 +144,7 @@ export default {
     },
     validateInput () {
       this.checkErrors = true
-    },
-    logit (event) {
-      console.log(event)
     }
-
   }
 }
 // reference: https://firebase.google.com/docs/database/web/read-and-write

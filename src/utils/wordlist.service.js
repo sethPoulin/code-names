@@ -18,11 +18,9 @@ class wordList {
       }
       for (let list in wordlistOptions) {
         if (wordsArr.indexOf(list) > -1) {
-          console.log(list)
           newWordList.push(...wordlistOptions[list])
         }
       }
-      console.log(newWordList)
       this.wordsArray = newWordList
     }
     this.cardAssignments = []
