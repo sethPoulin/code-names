@@ -343,6 +343,7 @@ export default {
       font-weight: 700
       font-size: 22px
   
+  
   .container 
     max-width 95%
     min-width: 795px
