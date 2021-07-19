@@ -108,7 +108,6 @@ export default {
       return db.ref(this.gameId).update(updates)
     },
     createCardlist: function () {
-      // console.log(this.wordlists)
       const list = new wordList(undefined, undefined, this.wordlists)
       this.cardList = list.cardList
       this.remainingWords = list.remainingWords
@@ -133,6 +132,7 @@ export default {
       this.setGameId()
       this.createCardlist()
       db.ref(this.gameId).set({
+        triggerResetToAgent: 0,
         cardList: this.cardList,
         teamTurn: this.startingTurn,
         winner: 'empty',

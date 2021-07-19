@@ -22,18 +22,18 @@
         </div>
         <div v-else class="turn-container">
           <p 
-            v-if="data.teamTurn" 
+            v-if="gameData.teamTurn"
             class="turn-message">
-            <span :class="data.teamTurn">
-              {{ data.teamTurn | capitalize }} 
+            <span :class="gameData.teamTurn">
+              {{ gameData.teamTurn | capitalize }}
             </span>
             is playing
           </p>
           <base-button 
             @click.native="endCurrentTurn()"
-            v-if="data.teamTurn" 
+            v-if="gameData.teamTurn"
             class="turn-message--end">
-            End {{data.teamTurn}}'s turn
+            End {{gameData.teamTurn}}'s turn
           </base-button>
         </div>
       </div>
@@ -46,7 +46,7 @@
       :class="['game', {'ended' : winner}]">
       <game-card
         class="card" 
-        v-for="card in data.cardList" 
+        v-for="card in gameData.cardList"
         :key="card.word" 
         :word="card.word" 
         :role="card.role"
@@ -99,7 +99,7 @@ export default {
   data() {
     return {
       gameId: '',
-      data: '',
+      gameData: '',
       playerIsAgent: true,
       winner: undefined,
       cardSolvedRole: undefined,
@@ -118,7 +118,10 @@ export default {
         this.endGameByAssassin()
       }
     },
-    data: function (val) {
+    triggerResetToAgent: function () {
+      this.playerIsAgent = true
+    },
+    gameData: function (val) {
       if (val.winner === 'red' || val.winner === 'blue') {
         this.winner = val.winner
         this.restartProtected = false
@@ -149,15 +152,18 @@ export default {
   },
   computed: {
     blueCardsRemaining () {
-      if (!this.data.cardList) return
+      if (!this.gameData.cardList) return
       return this.getCardsRemaining('blue')
     },
     redCardsRemaining () {
-      if (!this.data.cardList) return
+      if (!this.gameData.cardList) return
       return this.getCardsRemaining('red')
     },
+    triggerResetToAgent () {
+      return this.gameData && this.gameData.triggerResetToAgent
+    },
     turnShouldEnd () {
-      return (this.cardSolvedRole === 'civilian') || (this.cardSolvedRole === 'red' && this.data.teamTurn === 'blue') || (this.cardSolvedRole === 'blue' && this.data.teamTurn === 'red')
+      return (this.cardSolvedRole === 'civilian') || (this.cardSolvedRole === 'red' && this.gameData.teamTurn === 'blue') || (this.cardSolvedRole === 'blue' && this.gameData.teamTurn === 'red')
     }
   },
   methods: {
@@ -168,12 +174,12 @@ export default {
       if(db.ref(this.gameId)) {
         const currentGame = db.ref(this.gameId)
         currentGame.on('value', (snapshot) => {
-          this.data = snapshot.val()
+          this.gameData = snapshot.val()
         })
       }
     },
     solveCard (wordStr) {
-      this.data.cardList.forEach(card => {
+      this.gameData.cardList.forEach(card => {
         if (card.word === wordStr) {
           card.solved = true
           this.cardSolvedRole = card.role
@@ -183,7 +189,7 @@ export default {
     },
     updateCards () {
       const updates = {}
-      updates[this.gameId + '/cardList'] = this.data.cardList;
+      updates[this.gameId + '/cardList'] = this.gameData.cardList;
       return db.ref().update(updates)
     },
     switchLayout () {
@@ -196,13 +202,13 @@ export default {
       return db.ref().update(updates)
     },
     endCurrentTurn () {
-      if (this.data.teamTurn === 'red') this.updateTurn('blue')
+      if (this.gameData.teamTurn === 'red') this.updateTurn('blue')
       else {
         this.updateTurn('red')
       }
     },
     getCardsRemaining (team) {
-      const solvedCards = this.data.cardList.filter(card => {
+      const solvedCards = this.gameData.cardList.filter(card => {
         return card.role === team && card.solved === false
       })
       return solvedCards.length
@@ -210,7 +216,7 @@ export default {
     endGameByAssassin () {
       this.restartProtected = false
       const updates = {}
-      updates[this.gameId + '/winner'] = this.data.teamTurn === 'red' ? 'blue' : 'red'
+      updates[this.gameId + '/winner'] = this.gameData.teamTurn === 'red' ? 'blue' : 'red'
       return db.ref().update(updates)
     },
     startNewGame () {
@@ -218,13 +224,14 @@ export default {
       if (!this.restartProtected) {
         this.restartProtected = true
         this.cardSolvedRole = undefined
-        this.playerIsAgent = true
-        const startTeam = this.winner ? this.winner : this.data.startedCurrentGame
-        const wordsRemaining = this.data.remainingWords && this.data.remainingWords.length >= 25 ? this.data.remainingWords : undefined
+        const startTeam = this.winner ? this.winner : this.gameData.startedCurrentGame
+        const wordsRemaining = this.gameData.remainingWords && this.gameData.remainingWords.length >= 25 ? this.gameData.remainingWords : undefined
         const list = new wordList(startTeam, wordsRemaining)
         const cardList = list.cardList
         const remainingWords = list.remainingWords
         db.ref(this.gameId).set({
+          // trigger a watcher in each player's app to set player to agent
+          triggerResetToAgent: this.gameData.triggerResetToAgent + 1,
           cardList: cardList,
           teamTurn: startTeam,
           // object properties cannot be undefined in Firebase
