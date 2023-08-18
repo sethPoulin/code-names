@@ -1,28 +1,14 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import CreateGame from '@/views/CreateGame.vue'
 
 Vue.use(VueRouter)
 
-const CreateGame = () => import('../views/CreateGame.vue')
-const PlayGame = () => import('../views/PlayGame.vue')
+const PlayGame = () => import('@/views/PlayGame.vue')
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
-  },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  },
-  {
-    path: '/create',
     name: 'create',
     component: CreateGame
   },
@@ -30,6 +16,7 @@ const routes = [
     path: '/play/:game',
     name: 'play',
     component: PlayGame
+    // TODO: add error handling if user enters /play/something-invalid.  Would need to contact the game db and makes sure gameName exists, otherwise forward to an oops it looks like that page doesn't exist page.  
   },
   {
     path: '*',
