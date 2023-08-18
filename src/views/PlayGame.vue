@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-        <h2 class="game-link">Share this game link: 
+        <h2 class="game-link">Others can join the game at this link: 
           <span>
             https://code-names-seth.netlify.app/play/{{ gameId }}
           </span>
